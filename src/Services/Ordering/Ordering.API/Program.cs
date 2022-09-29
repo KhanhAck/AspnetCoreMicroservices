@@ -1,11 +1,13 @@
-using Discount.API.Extensions;
-using Discount.API.Repositories;
-using Discount.API.Repositories.Interfaces;
+using Ordering.API.Extensions;
+using Ordering.Application;
+using Ordering.Infrastructure;
+using Ordering.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddControllers();
 
@@ -15,7 +17,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.Services.MigrateDatabase<Program>();
+app.Services.MigrateDatabase<OrderContext>((context, services) =>
+{
+    var logger = services.GetService<ILogger<OrderContextSeed>>();
+    OrderContextSeed
+        .SeedAsync(context, logger)
+        .Wait();
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

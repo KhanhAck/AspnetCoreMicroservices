@@ -6,9 +6,9 @@ namespace Ordering.API.Extensions
 {
     public static class HostExtensions
     {
-        public static void MigrateDatabase<TContext>(this IServiceProvider services, Action<TContext, IServiceProvider> seeder) where TContext : DbContext
+        public static WebApplication MigrateDatabase<TContext>(this WebApplication webApp, Action<TContext, IServiceProvider> seeder) where TContext : DbContext
         {
-            using (var scope = services.CreateScope())
+            using (var scope = webApp.Services.CreateScope())
             {
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<TContext>>();
                 var context = scope.ServiceProvider.GetService<TContext>();
@@ -29,7 +29,7 @@ namespace Ordering.API.Extensions
                     //if the sql server container is not created on run docker compose this
                     //migration can't fail for network related exception. The retry options for DbContext only
                     //apply to transient exceptions
-                    retry.Execute(() => InvokeSeeder(seeder, context, services));
+                    retry.Execute(() => InvokeSeeder(seeder, context, webApp.Services));
 
                     logger.LogInformation("Migrated database associated with context {DbContextName}", typeof(TContext).Name);
                 }
@@ -38,6 +38,8 @@ namespace Ordering.API.Extensions
                     logger.LogError(ex, "An error occurred while migrating the database used on context {DbContextName}", typeof(TContext).Name);
                 }
             }
+
+            return webApp;
         }
 
         private static void InvokeSeeder<TContext>(Action<TContext, IServiceProvider> seeder, TContext context, IServiceProvider services)

@@ -5,9 +5,9 @@ namespace Discount.API.Extensions
 {
     public static class HostExtensions
     {
-        public static void MigrateDatabase<TContext>(this IServiceProvider services)
+        public static WebApplication MigrateDatabase<TContext>(this WebApplication webApp)
         {
-            using (var scope = services.CreateScope())
+            using (var scope = webApp.Services.CreateScope())
             {
                 var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<TContext>>();
@@ -37,6 +37,8 @@ namespace Discount.API.Extensions
                     logger.LogError(ex, "An error occurred while migrating the postresql database");
                 }
             }
+
+            return webApp;
         }
 
         private static void ExecuteMigrations(IConfiguration configuration)

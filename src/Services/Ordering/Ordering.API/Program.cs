@@ -13,14 +13,16 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // MassTransit-RabbitMQ Configuration
-builder.Services.AddMassTransit(config => {
-
+builder.Services.AddMassTransit(config =>
+{
     config.AddConsumer<BasketCheckoutConsumer>();
 
-    config.UsingRabbitMq((ctx, cfg) => {
+    config.UsingRabbitMq((ctx, cfg) =>
+    {
         cfg.Host(builder.Configuration["EventBusSettings:HostAddress"]);
 
-        cfg.ReceiveEndpoint(EventBusConstants.BasketCheckoutQueue, c => {
+        cfg.ReceiveEndpoint(EventBusConstants.BasketCheckoutQueue, c =>
+        {
             c.ConfigureConsumer<BasketCheckoutConsumer>(ctx);
         });
     });
@@ -38,7 +40,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.Services.MigrateDatabase<OrderContext>((context, services) =>
+app.MigrateDatabase<OrderContext>((context, services) =>
 {
     var logger = services.GetService<ILogger<OrderContextSeed>>();
     OrderContextSeed
